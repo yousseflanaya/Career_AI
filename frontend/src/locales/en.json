@@ -103,10 +103,10 @@
     ],
     "demo_title": "See CareerAI in action",
     "demos": {
-      "quiz": { "tab": "RIASEC Quiz", "title": "Clear profile analysis", "description": "Answer questions and receive a professional reading of your interests." },
-      "cv": { "tab": "CV Builder", "title": "Recruiter-ready CV", "description": "Build a modern, optimized CV and export it to PDF." },
-      "interview": { "tab": "Interview", "title": "Structured coaching", "description": "Practice with questions adapted to your target role." },
-      "dashboard": { "tab": "Dashboard", "title": "Centralized progress", "description": "Track your CV score, badges, interviews, and roadmap." }
+      "quiz": { "tab": "RIASEC Quiz", "title": "Clear profile analysis", "description": "Answer questions and receive a professional reading of your interests.", "mock": { "progress": "Question 12 of 30", "time": "15 min", "question": "I enjoy solving complex problems and understanding how systems work.", "answers": ["Not me", "Somewhat me", "Neutral", "Exactly me"], "scores": [{ "label": "R", "value": 42 }, { "label": "I", "value": 88 }, { "label": "A", "value": 61 }, { "label": "S", "value": 55 }, { "label": "E", "value": 70 }, { "label": "C", "value": 49 }] } },
+      "cv": { "tab": "CV Builder", "title": "Recruiter-ready CV", "description": "Build a modern, optimized CV and export it to PDF.", "mock": { "score_label": "ATS score", "score": "92/100", "templates": ["Modern template", "Executive template", "Minimal template"] } },
+      "interview": { "tab": "Interview", "title": "Structured coaching", "description": "Practice with questions adapted to your target role.", "mock": { "interviewer": "AI interviewer", "role": "Frontend developer", "question": "Tell me about a project where you improved performance.", "star": ["Situation", "Task", "Action", "Result"], "feedback": "Strong structure. Add one quantified result to improve your answer." } },
+      "dashboard": { "tab": "Dashboard", "title": "Centralized progress", "description": "Track your CV score, badges, interviews, and roadmap.", "mock": { "cards": [{ "label": "CV score", "value": "92", "progress": "92%" }, { "label": "Interview", "value": "85%", "progress": "85%" }, { "label": "Profile", "value": "76%", "progress": "76%" }, { "label": "Badges", "value": "8", "progress": "60%" }], "activity_title": "Recent activity", "activities": ["CV exported successfully", "RIASEC profile updated", "Interview session saved"] } }
     },
     "try_free": "Try for free",
     "free_title": "CareerAI is 100% free, forever.",

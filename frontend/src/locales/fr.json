@@ -110,10 +110,10 @@
     ],
     "demo_title": "Voyez CareerAI en action",
     "demos": {
-      "quiz": { "tab": "Quiz RIASEC", "title": "Analyse de profil claire", "description": "Répondez aux questions et recevez une lecture professionnelle de vos intérêts." },
-      "cv": { "tab": "CV Builder", "title": "CV prêt pour les recruteurs", "description": "Construisez un CV moderne, optimisé et exportable en PDF." },
-      "interview": { "tab": "Entretien", "title": "Coaching structuré", "description": "Entraînez-vous avec des questions adaptées au poste visé." },
-      "dashboard": { "tab": "Dashboard", "title": "Progression centralisée", "description": "Suivez votre score CV, vos badges, vos entretiens et votre roadmap." }
+      "quiz": { "tab": "Quiz RIASEC", "title": "Analyse de profil claire", "description": "Répondez aux questions et recevez une lecture professionnelle de vos intérêts.", "mock": { "progress": "Question 12 sur 30", "time": "15 min", "question": "J'aime résoudre des problèmes complexes et comprendre le fonctionnement des systèmes.", "answers": ["Pas moi", "Plutôt moi", "Neutre", "Tout à fait moi"], "scores": [{ "label": "R", "value": 42 }, { "label": "I", "value": 88 }, { "label": "A", "value": 61 }, { "label": "S", "value": 55 }, { "label": "E", "value": 70 }, { "label": "C", "value": 49 }] } },
+      "cv": { "tab": "CV Builder", "title": "CV prêt pour les recruteurs", "description": "Construisez un CV moderne, optimisé et exportable en PDF.", "mock": { "score_label": "Score ATS", "score": "92/100", "templates": ["Modèle moderne", "Modèle exécutif", "Modèle minimal"] } },
+      "interview": { "tab": "Entretien", "title": "Coaching structuré", "description": "Entraînez-vous avec des questions adaptées au poste visé.", "mock": { "interviewer": "Intervieweur IA", "role": "Développeur frontend", "question": "Parlez-moi d'un projet où vous avez amélioré la performance.", "star": ["Situation", "Tâche", "Action", "Résultat"], "feedback": "Structure solide. Ajoutez un résultat chiffré pour renforcer la réponse." } },
+      "dashboard": { "tab": "Dashboard", "title": "Progression centralisée", "description": "Suivez votre score CV, vos badges, vos entretiens et votre roadmap.", "mock": { "cards": [{ "label": "Score CV", "value": "92", "progress": "92%" }, { "label": "Entretien", "value": "85%", "progress": "85%" }, { "label": "Profil", "value": "76%", "progress": "76%" }, { "label": "Badges", "value": "8", "progress": "60%" }], "activity_title": "Activité récente", "activities": ["CV exporté avec succès", "Profil RIASEC mis à jour", "Session d'entretien sauvegardée"] } }
     },
     "try_free": "Essayer gratuitement",
     "free_title": "CareerAI est 100% gratuit, pour toujours.",
