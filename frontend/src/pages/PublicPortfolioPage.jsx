@@ -57,8 +57,10 @@ export default function PublicPortfolioPage() {
   const displayEmail = draft?.email || user.email;
   const displayPhone = draft?.phone || profile?.phone;
   const displaySkills = draftSkills.length ? draftSkills : (skills || []);
-  const displayExperiences = draft?.jobTitle || draft?.company ? [{ id: 'draft', job_title: draft.jobTitle, company: draft.company, description: draft.jobDesc, start_date: '', end_date: draft.duration }] : (experiences || []);
-  const displayEducations = draft?.degree || draft?.school ? [{ id: 'draft', degree: draft.degree, school: draft.school, year: draft.year }] : (educations || []);
+  const draftExperiences = Array.isArray(draft?.experiences) ? draft.experiences.filter((item) => item.jobTitle || item.company || item.duration || item.jobDesc).map((item, index) => ({ id: `draft-exp-${index}`, job_title: item.jobTitle, company: item.company, description: item.jobDesc, start_date: '', end_date: item.duration })) : [];
+  const draftEducations = Array.isArray(draft?.educations) ? draft.educations.filter((item) => item.degree || item.school || item.year).map((item, index) => ({ id: `draft-edu-${index}`, degree: item.degree, school: item.school, year: item.year })) : [];
+  const displayExperiences = draftExperiences.length ? draftExperiences : (draft?.jobTitle || draft?.company ? [{ id: 'draft', job_title: draft.jobTitle, company: draft.company, description: draft.jobDesc, start_date: '', end_date: draft.duration }] : (experiences || []));
+  const displayEducations = draftEducations.length ? draftEducations : (draft?.degree || draft?.school ? [{ id: 'draft', degree: draft.degree, school: draft.school, year: draft.year }] : (educations || []));
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">

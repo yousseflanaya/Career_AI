@@ -68,8 +68,10 @@ export default function PortfolioPage() {
   const user = profile?.user || {};
   const draftSkills = cvDraft?.skills ? cvDraft.skills.split(',').map((name, index) => ({ id: `draft-${index}`, name: name.trim() })).filter((skill) => skill.name) : [];
   const skills = draftSkills.length ? draftSkills : (profile?.skills || []);
-  const experiences = cvDraft?.jobTitle || cvDraft?.company ? [{ id: 'cv-draft', job_title: cvDraft.jobTitle, company: cvDraft.company, description: cvDraft.jobDesc, duration: cvDraft.duration }] : (profile?.experiences || []);
-  const educations = cvDraft?.degree || cvDraft?.school ? [{ id: 'cv-draft', degree: cvDraft.degree, school: cvDraft.school, year: cvDraft.year }] : (profile?.educations || []);
+  const draftExperiences = Array.isArray(cvDraft?.experiences) ? cvDraft.experiences.filter((item) => item.jobTitle || item.company || item.duration || item.jobDesc).map((item, index) => ({ id: `draft-exp-${index}`, job_title: item.jobTitle, company: item.company, description: item.jobDesc, duration: item.duration })) : [];
+  const draftEducations = Array.isArray(cvDraft?.educations) ? cvDraft.educations.filter((item) => item.degree || item.school || item.year).map((item, index) => ({ id: `draft-edu-${index}`, degree: item.degree, school: item.school, year: item.year })) : [];
+  const experiences = draftExperiences.length ? draftExperiences : (cvDraft?.jobTitle || cvDraft?.company ? [{ id: 'cv-draft', job_title: cvDraft.jobTitle, company: cvDraft.company, description: cvDraft.jobDesc, duration: cvDraft.duration }] : (profile?.experiences || []));
+  const educations = draftEducations.length ? draftEducations : (cvDraft?.degree || cvDraft?.school ? [{ id: 'cv-draft', degree: cvDraft.degree, school: cvDraft.school, year: cvDraft.year }] : (profile?.educations || []));
   const displayName = cvDraft?.fullName || user.name || t('portfolio.your_name');
   const summary = cvDraft?.summary || profile?.profile?.summary || t('portfolio.cv_builder_hint');
   const email = cvDraft?.email || user.email;

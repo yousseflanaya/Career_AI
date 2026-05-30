@@ -69,6 +69,10 @@ export default function LandingPage() {
     '--landing-text': isDark ? '#FFFFFF' : '#0F172A',
     '--landing-muted': isDark ? 'rgba(255,255,255,0.62)' : 'rgba(15,23,42,0.68)',
     '--landing-soft': isDark ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.50)',
+    '--landing-accent-text': isDark ? '#DDD6FE' : '#6D28D9',
+    '--landing-success-text': isDark ? '#A7F3D0' : '#047857',
+    '--landing-active': isDark ? '#FFFFFF' : '#111827',
+    '--landing-active-text': isDark ? '#111827' : '#FFFFFF',
   };
 
   return (
@@ -127,7 +131,7 @@ export default function LandingPage() {
       <main className="relative z-10">
         {isAuthenticated && (
           <div className="mx-auto max-w-7xl px-5 pt-24">
-            <div className="rounded-3xl border border-primary-400/20 bg-primary-500/10 px-5 py-3 text-sm font-bold text-primary-100">
+            <div className="rounded-3xl border border-primary-400/20 bg-primary-500/10 px-5 py-3 text-sm font-bold text-[var(--landing-accent-text)]">
               {t('landing_full.welcome_back')} <Link to="/dashboard" className="underline decoration-primary-300 underline-offset-4">{t('landing_full.go_dashboard')}</Link>
             </div>
           </div>
@@ -135,7 +139,7 @@ export default function LandingPage() {
 
         <section className={`mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-5 pb-20 ${isAuthenticated ? 'pt-10' : 'pt-28'} lg:grid-cols-[1fr_0.92fr]`}>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.7 }} className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--landing-border)] bg-[var(--landing-card)] px-4 py-2 text-xs font-black uppercase tracking-widest text-primary-100">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--landing-border)] bg-[var(--landing-card)] px-4 py-2 text-xs font-black uppercase tracking-widest text-[var(--landing-accent-text)]">
               <Sparkles className="h-4 w-4" />
               {t('landing_full.hero_badge')}
             </div>
@@ -143,7 +147,7 @@ export default function LandingPage() {
               <h1 className="max-w-4xl text-5xl font-black leading-[1.02] tracking-tight md:text-7xl">
                 {t('landing_full.hero_title')}
               </h1>
-              <p className="mt-5 min-h-8 bg-gradient-to-r from-primary-300 to-secondary-300 bg-clip-text text-2xl font-black text-transparent">
+              <p className="mt-5 min-h-8 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-2xl font-black text-transparent">
                 {t(`landing_full.hero_rotating.${wordIndex}`)}
               </p>
             </div>
@@ -173,11 +177,11 @@ export default function LandingPage() {
 
         <Section id="stats" className="mx-auto max-w-7xl px-5 py-10">
           <div className="rounded-[2rem] border border-[var(--landing-border)] bg-[var(--landing-card)] p-6 backdrop-blur-xl">
-            <div className="mb-5 inline-flex rounded-full bg-primary-500/15 px-3 py-1 text-xs font-black text-primary-100">{t('landing_full.free_badge')}</div>
+            <div className="mb-5 inline-flex rounded-full bg-primary-500/15 px-3 py-1 text-xs font-black text-[var(--landing-accent-text)]">{t('landing_full.free_badge')}</div>
             <div className="grid gap-6 md:grid-cols-4">
               {stats.map((stat) => (
                 <div key={stat.label} className="border-[var(--landing-border)] md:border-r last:border-r-0">
-                  <p className="text-4xl font-black text-primary-300">{stat.value}</p>
+                  <p className="text-4xl font-black text-primary-600">{stat.value}</p>
                   <p className="mt-1 text-sm font-bold text-[var(--landing-muted)]">{stat.label}</p>
                 </div>
               ))}
@@ -216,7 +220,7 @@ export default function LandingPage() {
           <h2 className="mb-8 text-center text-4xl font-black md:text-5xl">{t('landing_full.demo_title')}</h2>
           <div className="rounded-[2rem] border border-[var(--landing-border)] bg-[var(--landing-card)] p-5 backdrop-blur-xl">
             <div className="mb-5 flex flex-wrap gap-2">
-              {Object.keys(demos).map((key) => <button key={key} onClick={() => setActiveDemo(key)} className={`rounded-2xl px-4 py-2 text-sm font-black ${activeDemo === key ? 'bg-white text-gray-950' : 'bg-[var(--landing-card)] text-[var(--landing-muted)]'}`}>{demos[key].tab}</button>)}
+              {Object.keys(demos).map((key) => <button key={key} onClick={() => setActiveDemo(key)} className={`rounded-2xl px-4 py-2 text-sm font-black ${activeDemo === key ? 'bg-[var(--landing-active)] text-[var(--landing-active-text)]' : 'bg-[var(--landing-card)] text-[var(--landing-muted)]'}`}>{demos[key].tab}</button>)}
             </div>
             <div className="grid gap-8 rounded-3xl bg-[var(--landing-panel)] p-8 lg:grid-cols-[0.8fr_1.2fr]">
               <div>
@@ -272,7 +276,7 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t border-[var(--landing-border)] px-5 py-12">
         <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-4">
           <div>
-            <BrandLogo inverted />
+            <BrandLogo inverted={isDark} />
             <p className="mt-4 text-sm font-medium leading-7 text-[var(--landing-soft)]">{t('landing_full.footer_description')}</p>
             <div className="mt-4 inline-flex rounded-full bg-[var(--landing-card-strong)] px-3 py-1 text-xs font-black text-[var(--landing-muted)]">{t('landing_full.free_badge')}</div>
           </div>
@@ -301,7 +305,7 @@ function LanguageSwitch({ i18n }) {
   return (
     <div className="flex rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-card)] p-1">
       {['fr', 'en', 'ar'].map((lng) => (
-        <button key={lng} onClick={() => i18n.changeLanguage(lng)} className={`rounded-xl px-3 py-1.5 text-xs font-black ${i18n.language === lng ? 'bg-white text-gray-950' : 'text-[var(--landing-soft)]'}`}>{lng.toUpperCase()}</button>
+        <button key={lng} onClick={() => i18n.changeLanguage(lng)} className={`rounded-xl px-3 py-1.5 text-xs font-black ${i18n.language === lng ? 'bg-[var(--landing-active)] text-[var(--landing-active-text)]' : 'text-[var(--landing-soft)]'}`}>{lng.toUpperCase()}</button>
       ))}
     </div>
   );
@@ -312,13 +316,13 @@ function DemoMockup({ type, demo }) {
     return (
       <div className="rounded-[1.75rem] border border-[var(--landing-border)] bg-[var(--landing-subpanel)] p-5 shadow-2xl">
         <div className="mb-5 flex items-center justify-between">
-          <span className="rounded-full bg-primary-500/15 px-3 py-1 text-xs font-black text-primary-200">{demo.mock.progress}</span>
+          <span className="rounded-full bg-primary-500/15 px-3 py-1 text-xs font-black text-[var(--landing-accent-text)]">{demo.mock.progress}</span>
           <span className="text-xs font-black text-[var(--landing-soft)]">{demo.mock.time}</span>
         </div>
         <h4 className="text-xl font-black">{demo.mock.question}</h4>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {demo.mock.answers.map((answer, index) => (
-            <div key={answer} className={`rounded-2xl border px-4 py-3 text-sm font-black ${index === 1 ? 'border-primary-400 bg-primary-500/15 text-primary-100' : 'border-[var(--landing-border)] bg-[var(--landing-card)] text-[var(--landing-muted)]'}`}>{answer}</div>
+            <div key={answer} className={`rounded-2xl border px-4 py-3 text-sm font-black ${index === 1 ? 'border-primary-400 bg-primary-500/15 text-[var(--landing-accent-text)]' : 'border-[var(--landing-border)] bg-[var(--landing-card)] text-[var(--landing-muted)]'}`}>{answer}</div>
           ))}
         </div>
         <div className="mt-6 grid grid-cols-6 gap-2">
@@ -347,8 +351,8 @@ function DemoMockup({ type, demo }) {
         </div>
         <div className="space-y-3">
           <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-            <p className="text-xs font-black uppercase tracking-widest text-emerald-200">{demo.mock.score_label}</p>
-            <p className="mt-1 text-4xl font-black text-white">{demo.mock.score}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-[var(--landing-success-text)]">{demo.mock.score_label}</p>
+            <p className="mt-1 text-4xl font-black text-[var(--landing-text)]">{demo.mock.score}</p>
           </div>
           {demo.mock.templates.map((template) => <div key={template} className="rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-card)] px-4 py-3 text-sm font-black text-[var(--landing-muted)]">{template}</div>)}
         </div>
@@ -374,7 +378,7 @@ function DemoMockup({ type, demo }) {
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
           {demo.mock.star.map((item) => <div key={item} className="rounded-2xl bg-[var(--landing-card)] px-3 py-3 text-center text-xs font-black text-[var(--landing-muted)]">{item}</div>)}
         </div>
-        <div className="mt-4 rounded-2xl bg-emerald-400/10 px-4 py-3 text-sm font-black text-emerald-200">{demo.mock.feedback}</div>
+        <div className="mt-4 rounded-2xl bg-emerald-400/10 px-4 py-3 text-sm font-black text-[var(--landing-success-text)]">{demo.mock.feedback}</div>
       </div>
     );
   }
@@ -404,8 +408,8 @@ function MockCard({ icon: Icon, title, value }) {
   return (
     <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }} className="rounded-3xl border border-[var(--landing-border)] bg-[var(--landing-card-strong)] p-5">
       <div className="mb-4 flex items-center justify-between">
-        <Icon className="h-5 w-5 text-primary-200" />
-        <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-200">{value}</span>
+        <Icon className="h-5 w-5 text-[var(--landing-accent-text)]" />
+        <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-[var(--landing-success-text)]">{value}</span>
       </div>
       <p className="font-black">{title}</p>
       <div className="mt-4 h-2 rounded-full bg-[var(--landing-card-strong)]"><div className="h-full w-4/5 rounded-full bg-gradient-to-r from-primary-400 to-secondary-400" /></div>
@@ -430,14 +434,14 @@ function FeatureCard({ feature, Icon, ctaPath }) {
     <div className="group rounded-[2rem] border border-[var(--landing-border)] bg-[var(--landing-card)] p-7 backdrop-blur-xl transition hover:-translate-y-1 hover:border-primary-400/40">
       <div className="mb-5 flex items-center justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-secondary-500"><Icon className="h-6 w-6" /></div>
-        <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-200">{feature.badge}</span>
+        <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-[var(--landing-success-text)]">{feature.badge}</span>
       </div>
       <h3 className="text-2xl font-black">{feature.title}</h3>
       <p className="mt-3 text-sm font-medium leading-7 text-[var(--landing-muted)]">{feature.description}</p>
       <div className="mt-5 space-y-2">
         {feature.items.map((item) => <p key={item} className="flex gap-2 text-sm font-bold text-[var(--landing-muted)]"><Check className="h-4 w-4 text-emerald-300" />{item}</p>)}
       </div>
-      <Link to={ctaPath} className="mt-6 inline-flex items-center gap-2 text-sm font-black text-primary-200">{feature.cta} <ArrowRight className="h-4 w-4" /></Link>
+      <Link to={ctaPath} className="mt-6 inline-flex items-center gap-2 text-sm font-black text-[var(--landing-accent-text)]">{feature.cta} <ArrowRight className="h-4 w-4" /></Link>
     </div>
   );
 }
@@ -462,7 +466,7 @@ function Testimonial({ item }) {
           <p className="text-xs font-bold text-[var(--landing-soft)]">{item.role}</p>
         </div>
       </div>
-      <p className="mb-4 text-sm font-black text-primary-200">{item.rating}</p>
+      <p className="mb-4 text-sm font-black text-[var(--landing-accent-text)]">{item.rating}</p>
       <p className="text-sm font-medium leading-7 text-[var(--landing-muted)]">{item.quote}</p>
     </div>
   );
