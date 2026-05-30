@@ -8,6 +8,7 @@ import {
 import api from '../../lib/axios';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import BrandLogo from '../BrandLogo';
 
 const NAV_ITEMS = [
     { key: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: Home },
@@ -23,7 +24,7 @@ const NAV_ITEMS = [
     { key: 'settings', label: 'Settings', path: '/settings', icon: Settings },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { isDark, toggleTheme } = useTheme();
@@ -80,25 +81,22 @@ export default function Sidebar() {
                             className={({ isActive }) => `flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500'}`}
                         >
                             <item.icon className="w-6 h-6" />
-                            <span className="text-[10px] uppercase font-black">{t(item.key, item.label).substring(0, 8)}</span>
+                            <span className="text-[10px] uppercase font-black">{t(`nav.${item.key}`, item.label).substring(0, 8)}</span>
                         </NavLink>
                     ))}
                     <button onClick={() => setIsMobileMenuOpen(true)} className="flex flex-col items-center justify-center w-full h-full text-gray-500">
                         <Menu className="w-6 h-6" />
-                        <span className="text-[10px] uppercase font-black">Menu</span>
+                        <span className="text-[10px] uppercase font-black">{t('menu', 'Menu')}</span>
                     </button>
                 </div>
             </nav>
 
             {/* Main Sidebar Desktop + Mobile Drawer */}
-            <aside className={`fixed inset-y-0 ${i18n.language === 'ar' ? 'right-0 border-l' : 'left-0 border-r'} z-[60] w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-100 dark:border-gray-800 transition-all duration-300 transform lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : (i18n.language === 'ar' ? 'translate-x-full' : '-translate-x-full')}`}>
+            <aside className={`fixed inset-y-0 ${i18n.language === 'ar' ? 'right-0 border-l' : 'left-0 border-r'} z-[60] w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-100 dark:border-gray-800 transition-all duration-300 transform ${isOpen || isMobileMenuOpen ? 'translate-x-0' : (i18n.language === 'ar' ? 'translate-x-full' : '-translate-x-full')}`}>
                 <div className="h-full flex flex-col p-6">
                     <div className="flex items-center justify-between mb-8 px-2">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gray-950 dark:bg-white rounded-xl flex items-center justify-center text-emerald-400 dark:text-emerald-600 font-black text-xl shadow-lg">C</div>
-                            <span className="text-xl font-black text-gray-900 dark:text-white">CareerAI</span>
-                        </div>
-                        <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden p-2"><X className="w-5 h-5"/></button>
+                        <BrandLogo />
+                        <button onClick={() => { setIsMobileMenuOpen(false); onClose?.(); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"><X className="w-5 h-5"/></button>
                     </div>
 
                     <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
@@ -110,7 +108,7 @@ export default function Sidebar() {
                                 className={({ isActive }) => `flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-bold text-sm ${isActive ? 'bg-gray-950 dark:bg-white text-white dark:text-gray-950 shadow-lg shadow-gray-950/10' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                             >
                                 <item.icon className="w-5 h-5" />
-                                <span>{t(item.key, item.label)}</span>
+                                <span>{t(`nav.${item.key}`, item.label)}</span>
                             </NavLink>
                         ))}
                     </nav>
@@ -141,7 +139,6 @@ export default function Sidebar() {
                                  key={lng}
                                  onClick={() => {
                                     i18n.changeLanguage(lng);
-                                    document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
                                  }}
                                  className={`flex-1 text-[10px] font-black rounded-xl transition-all ${i18n.language === lng ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-gray-600'}`}
                                >
@@ -168,7 +165,7 @@ export default function Sidebar() {
                     <div className="p-6 border-b dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/20">
                         <div className="flex items-center gap-2">
                             <Sparkles className="w-5 h-5 text-primary-500" />
-                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Activity Center</h3>
+                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">{t('activity_center')}</h3>
                         </div>
                         <button onClick={() => setShowNotifications(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><X className="w-5 h-5 text-gray-400"/></button>
                     </div>
@@ -176,7 +173,7 @@ export default function Sidebar() {
                         {notifications.length === 0 ? (
                             <div className="py-20 text-center opacity-30">
                                 <Bell className="w-16 h-16 mx-auto mb-4" />
-                                <p className="font-black text-sm">Silence is golden.</p>
+                                <p className="font-black text-sm">{t('no_activity')}</p>
                             </div>
                         ) : notifications.map(n => (
                             <div key={n.id} className={`p-5 rounded-3xl border transition-all ${n.is_read ? 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800' : 'bg-primary-50/30 dark:bg-primary-900/10 border-primary-200 dark:border-primary-800 ring-1 ring-primary-100 dark:ring-primary-900/20 shadow-lg shadow-primary-500/5'}`}>
@@ -199,10 +196,10 @@ export default function Sidebar() {
             )}
 
             {/* Backdrop for mobile menu and notification drawer */}
-            {(isMobileMenuOpen || showNotifications) && (
+            {(isMobileMenuOpen || showNotifications || isOpen) && (
                 <div 
-                    onClick={() => { setIsMobileMenuOpen(false); setShowNotifications(false); }} 
-                    className="fixed inset-0 bg-gray-950/40 backdrop-blur-md z-[55] animate-in fade-in transition-all"
+                    onClick={() => { setIsMobileMenuOpen(false); setShowNotifications(false); onClose?.(); }} 
+                    className="fixed inset-0 bg-gray-950/40 backdrop-blur-md z-[55] animate-in fade-in transition-all lg:bg-transparent lg:pointer-events-none lg:backdrop-blur-0"
                 ></div>
             )}
         </>

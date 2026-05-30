@@ -1,257 +1,481 @@
-import { useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import html2pdf from 'html2pdf.js';
-import { Download, CheckCircle, Loader2, Sparkles, AlertCircle } from 'lucide-react';
-import api from '../lib/axios';
+import { Award, Briefcase, Check, Download, GraduationCap, Mail, MapPin, Phone, Save, Sparkles, Upload, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import api from '../lib/axios';
+
+const templates = ['modern', 'executive', 'minimal'];
+const themes = [
+  ['purple', '#7C3AED'],
+  ['blue', '#3B82F6'],
+  ['green', '#10B981'],
+  ['red', '#EF4444'],
+  ['orange', '#F97316'],
+  ['black', '#111827'],
+];
+
+const emptyForm = {
+  photo: '',
+  fullName: '',
+  title: '',
+  email: '',
+  phone: '',
+  address: '',
+  linkedin: '',
+  summary: '',
+  degree: '',
+  school: '',
+  year: '',
+  jobTitle: '',
+  company: '',
+  duration: '',
+  jobDesc: '',
+  skills: '',
+  languages: '',
+  certifications: '',
+};
+
+function splitList(value) {
+  return value.split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function Section({ title, children, color }) {
+  if (!children) return null;
+  return (
+    <section className="mb-6">
+      <h3 className="mb-3 flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.18em]" style={{ color }}>
+        {title}
+        <span className="h-px flex-1" style={{ backgroundColor: `${color}40` }} />
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function ContactLine({ data, color }) {
+  const items = [
+    [Mail, data.email],
+    [Phone, data.phone],
+    [MapPin, data.address],
+    [User, data.linkedin],
+  ].filter(([, value]) => value);
+
+  if (!items.length) return null;
+
+  return (
+    <div className="flex flex-wrap gap-3 text-[11px] font-semibold text-gray-600">
+      {items.map(([Icon, value]) => (
+        <span key={value} className="inline-flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5" style={{ color }} />
+          {value}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Photo({ src, color, className = '' }) {
+  if (!src) return null;
+  return <img src={src} alt="" className={`rounded-full border-4 object-cover ${className}`} style={{ borderColor: color }} />;
+}
+
+function CvContent({ data, color, t, variant }) {
+  const skills = splitList(data.skills);
+  const languages = splitList(data.languages);
+  const certifications = splitList(data.certifications);
+  const bullets = data.jobDesc.split('\n').map((item) => item.trim()).filter(Boolean);
+  const hasExperience = data.jobTitle || data.company || data.duration || bullets.length;
+  const hasEducation = data.degree || data.school || data.year;
+
+  if (variant === 'modern') {
+    return (
+      <div className="grid min-h-[1056px] grid-cols-[1fr_260px] bg-white text-gray-900">
+        <main className="p-10">
+          <h1 className="text-[28px] font-black uppercase tracking-tight">{data.fullName}</h1>
+          {data.title && <p className="mt-1 text-sm font-bold" style={{ color }}>{data.title}</p>}
+          <div className="my-5 h-1 w-24 rounded-full" style={{ backgroundColor: color }} />
+          <ContactLine data={data} color={color} />
+          {data.summary && (
+            <Section title={t('cv.preview.summary')} color={color}>
+              <p className="border-l-4 pl-4 text-sm leading-7 text-gray-700" style={{ borderColor: color }}>{data.summary}</p>
+            </Section>
+          )}
+          {hasExperience && (
+            <Section title={t('cv.preview.experience')} color={color}>
+              <div className="border-b border-gray-100 pb-4">
+                <div className="flex justify-between gap-4">
+                  <div>
+                    {data.jobTitle && <p className="font-black">{data.jobTitle}</p>}
+                    {data.company && <p className="text-sm font-bold" style={{ color }}>{data.company}</p>}
+                  </div>
+                  {data.duration && <p className="text-xs font-black text-gray-400">{data.duration}</p>}
+                </div>
+                <ul className="mt-3 space-y-1.5 text-sm leading-6 text-gray-700">
+                  {bullets.map((bullet) => <li key={bullet} className="flex gap-2"><span style={{ color }}>›</span>{bullet}</li>)}
+                </ul>
+              </div>
+            </Section>
+          )}
+          {hasEducation && (
+            <Section title={t('cv.preview.education')} color={color}>
+              <div className="flex justify-between gap-4 text-sm">
+                <div>
+                  {data.degree && <p className="font-black">{data.degree}</p>}
+                  {data.school && <p className="font-bold text-gray-500">{data.school}</p>}
+                </div>
+                {data.year && <p className="font-black" style={{ color }}>{data.year}</p>}
+              </div>
+            </Section>
+          )}
+        </main>
+        <aside className="p-8 text-white" style={{ backgroundColor: color }}>
+          <Photo src={data.photo} color="#fff" className="mx-auto mb-7 h-28 w-28" />
+          {skills.length > 0 && <SidebarList title={t('cv.preview.skills')} items={skills} />}
+          {languages.length > 0 && <SidebarList title={t('cv.preview.languages')} items={languages} />}
+          {certifications.length > 0 && <SidebarList title={t('cv.preview.certifications')} items={certifications} />}
+        </aside>
+      </div>
+    );
+  }
+
+  if (variant === 'executive') {
+    return (
+      <div className="grid min-h-[1056px] grid-cols-[280px_1fr] bg-white text-gray-900">
+        <aside className="p-8 text-white" style={{ background: `linear-gradient(160deg, ${color}, #111827)` }}>
+          <Photo src={data.photo} color="#fff" className="mx-auto mb-5 h-28 w-28" />
+          <h1 className="text-center text-2xl font-black">{data.fullName}</h1>
+          {data.title && <p className="mt-2 text-center text-sm font-bold text-white/80">{data.title}</p>}
+          <div className="my-6 h-px bg-white/30" />
+          <SidebarList title={t('cv.preview.contact')} items={[data.email, data.phone, data.address, data.linkedin].filter(Boolean)} />
+          <SidebarList title={t('cv.preview.skills')} items={skills} />
+          <SidebarList title={t('cv.preview.languages')} items={languages} />
+        </aside>
+        <main className="p-10">
+          {data.summary && <Section title={t('cv.preview.summary')} color={color}><p className="text-sm leading-7 text-gray-700">{data.summary}</p></Section>}
+          {hasExperience && (
+            <Timeline title={t('cv.preview.experience')} color={color} date={data.duration} heading={data.jobTitle} subheading={data.company} bullets={bullets} />
+          )}
+          {hasEducation && (
+            <Timeline title={t('cv.preview.education')} color={color} date={data.year} heading={data.degree} subheading={data.school} bullets={[]} />
+          )}
+          {certifications.length > 0 && <Section title={t('cv.preview.certifications')} color={color}><div className="grid gap-2">{certifications.map((item) => <div key={item} className="rounded-xl border border-gray-100 p-3 text-sm font-bold"><Award className="mr-2 inline h-4 w-4" style={{ color }} />{item}</div>)}</div></Section>}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto min-h-[1056px] max-w-[760px] bg-white p-12 text-gray-900">
+      <header className="flex items-center gap-5 border-b pb-6" style={{ borderColor: `${color}35` }}>
+        <Photo src={data.photo} color={color} className="h-24 w-24" />
+        <div>
+          <h1 className="text-[32px] font-black uppercase tracking-[0.12em]">{data.fullName}</h1>
+          {data.title && <p className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black" style={{ backgroundColor: `${color}16`, color }}>{data.title}</p>}
+          <div className="mt-4"><ContactLine data={data} color={color} /></div>
+        </div>
+      </header>
+      <main className="mt-8">
+        {data.summary && <Section title={t('cv.preview.summary')} color={color}><p className="text-sm leading-7 text-gray-700">{data.summary}</p></Section>}
+        {hasExperience && <MinimalBlock title={t('cv.preview.experience')} color={color} date={data.duration} heading={data.jobTitle} subheading={data.company} bullets={bullets} />}
+        {hasEducation && <MinimalBlock title={t('cv.preview.education')} color={color} date={data.year} heading={data.degree} subheading={data.school} bullets={[]} />}
+        {skills.length > 0 && <TagSection title={t('cv.preview.skills')} color={color} items={skills} />}
+        {languages.length > 0 && <TagSection title={t('cv.preview.languages')} color={color} items={languages} />}
+        {certifications.length > 0 && <TagSection title={t('cv.preview.certifications')} color={color} items={certifications} />}
+      </main>
+      <footer className="mt-10 text-center text-[10px] font-bold uppercase tracking-widest text-gray-300">{t('cv.preview.watermark')}</footer>
+    </div>
+  );
+}
+
+function SidebarList({ title, items }) {
+  if (!items.length) return null;
+  return (
+    <section className="mb-7">
+      <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-white/70">{title}</h3>
+      <div className="space-y-2">
+        {items.map((item) => <p key={item} className="rounded-full bg-white/15 px-3 py-2 text-xs font-bold text-white">{item}</p>)}
+      </div>
+    </section>
+  );
+}
+
+function Timeline({ title, color, date, heading, subheading, bullets }) {
+  return (
+    <Section title={title} color={color}>
+      <div className="relative border-l-2 pl-5" style={{ borderColor: `${color}55` }}>
+        <span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
+        {date && <span className="rounded-full px-3 py-1 text-[10px] font-black text-white" style={{ backgroundColor: color }}>{date}</span>}
+        {heading && <p className="mt-3 font-black">{heading}</p>}
+        {subheading && <p className="text-sm font-bold text-gray-500">{subheading}</p>}
+        <ul className="mt-3 space-y-1 text-sm leading-6 text-gray-700">
+          {bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
+        </ul>
+      </div>
+    </Section>
+  );
+}
+
+function MinimalBlock({ title, color, date, heading, subheading, bullets }) {
+  return (
+    <Section title={title} color={color}>
+      <div className="mb-4">
+        <div className="flex justify-between gap-4">
+          {heading && <p className="font-black">{heading}</p>}
+          {date && <p className="text-xs font-black text-gray-400">{date}</p>}
+        </div>
+        {subheading && <p className="text-sm font-semibold italic text-gray-500">{subheading}</p>}
+        <ul className="mt-3 space-y-1 text-sm leading-6 text-gray-700">
+          {bullets.map((bullet) => <li key={bullet} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0" style={{ backgroundColor: color }} />{bullet}</li>)}
+        </ul>
+      </div>
+    </Section>
+  );
+}
+
+function TagSection({ title, color, items }) {
+  return (
+    <Section title={title} color={color}>
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => <span key={item} className="rounded-full border px-3 py-1 text-xs font-black" style={{ borderColor: color, color }}>{item}</span>)}
+      </div>
+    </Section>
+  );
+}
 
 export default function CVBuilderPage() {
   const { t, i18n } = useTranslation();
-  const STEPS = [
-    t('cv.step_personal', 'Personal Info'),
-    t('cv.step_education', 'Education'),
-    t('cv.step_experience', 'Experience'),
-    t('cv.step_skills', 'Skills'),
-    t('cv.step_preview', 'Preview & Download')
-  ];
   const [currentStep, setCurrentStep] = useState(0);
+  const [selectedTemplate, setSelectedTemplate] = useState('modern');
+  const [selectedTheme, setSelectedTheme] = useState(themes[0]);
+  const [formData, setFormData] = useState(emptyForm);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const cvRef = useRef(null);
 
-  const [formData, setFormData] = useState({
-    fullName: '', email: '', phone: '', address: '', summary: '',
-    degree: '', school: '', year: '',
-    jobTitle: '', company: '', duration: '', jobDesc: '',
-    skills: ''
-  });
+  const steps = useMemo(() => [
+    t('cv.step_personal'),
+    t('cv.step_education'),
+    t('cv.step_experience'),
+    t('cv.step_skills'),
+    t('cv.step_preview'),
+  ], [t]);
 
-  const [feedback, setFeedback] = useState(null);
-  const [analyzing, setAnalyzing] = useState(false);
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('careerai_cv_builder_draft');
+    if (!savedDraft) return;
+    try {
+      setFormData({ ...emptyForm, ...JSON.parse(savedDraft) });
+    } catch (event) {
+      console.error('CV draft restore failed', event);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('careerai_cv_builder_draft', JSON.stringify(formData));
+  }, [formData]);
+
+  const updateField = (key, value) => setFormData((current) => ({ ...current, [key]: value }));
+
+  const handlePhoto = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => updateField('photo', reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const getAIFeedback = async () => {
     setAnalyzing(true);
-    setFeedback(null);
     try {
-      const response = await api.post('/cv/feedback', { 
-        cv_data: formData,
-        lang: i18n.language
-      });
+      const response = await api.post('/cv/feedback', { cv_data: formData, lang: i18n.language });
       setFeedback(response.data);
-    } catch (error) {
-      console.error("CV feedback error:", error);
+    } catch (event) {
+      console.error('CV feedback error:', event);
     } finally {
       setAnalyzing(false);
     }
   };
 
   const handleDownload = () => {
-    const element = cvRef.current;
-    if (!element) return;
-    const opt = {
-      margin: 0.5,
-      filename: `${formData.fullName.replace(/\s+/g, '_') || 'My'}_CV.pdf`,
+    if (!cvRef.current) return;
+    html2pdf().from(cvRef.current).set({
+      margin: 0,
+      filename: `${formData.fullName.replace(/\s+/g, '_') || 'careerai'}_cv.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().from(element).set(opt).save();
+      jsPDF: { unit: 'px', format: [800, 1056], orientation: 'portrait' },
+    }).save();
     api.post('/notifications', {
-        title: 'CV Downloaded',
-        message: `Your professional CV (${formData.fullName}) has been successfully generated and downloaded as PDF.`,
-        type: 'success'
-    }).catch(e => console.error("Notification trigger failed", e));
-    api.post('/badges/check', { action: 'cv_created' }).catch(e => console.error("Badge trigger failed", e));
+      title: t('cv.notifications.download_title'),
+      message: t('cv.notifications.download_message'),
+      type: 'success',
+    }).catch((event) => console.error('Notification trigger failed', event));
+    api.post('/badges/check', { action: 'cv_created' }).catch((event) => console.error('Badge trigger failed', event));
   };
 
+  const color = selectedTheme[1];
+  const canPreview = Boolean(formData.fullName || formData.title || formData.summary || formData.email);
+
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mx-auto max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-gray-100 transition-colors uppercase tracking-tight">{t('cv.builder_title', 'CV Builder')}</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">{t('cv.builder_subtitle', 'Complete the steps below to generate and download your professional PDF CV.')}</p>
+        <h1 className="text-3xl font-black uppercase tracking-tight text-gray-900 dark:text-gray-100">{t('cv.builder_title')}</h1>
+        <p className="mt-1 font-medium text-gray-500 dark:text-gray-400">{t('cv.builder_subtitle')}</p>
       </div>
 
-      {/* Progress Bar */}
       <div className="mb-8">
-        <div className="flex justify-between mb-3">
-          {STEPS.map((step, idx) => (
-            <span key={idx} className={`text-xs font-black uppercase tracking-widest hidden sm:block ${idx <= currentStep ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>
-              {step}
-            </span>
+        <div className="mb-3 flex justify-between gap-2">
+          {steps.map((step, index) => (
+            <span key={step} className={`hidden text-xs font-black uppercase tracking-widest sm:block ${index <= currentStep ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>{step}</span>
           ))}
         </div>
-        <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-          <div className="h-full bg-primary-600 transition-all duration-500 shadow-[0_0_8px_rgba(124,58,237,0.4)]" style={{ width: `${((currentStep) / (STEPS.length - 1)) * 100}%` }} />
+        <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div className="h-full bg-primary-600 transition-all duration-500" style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }} />
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 min-h-[500px]">
-        {currentStep === 0 && (
-          <div className="space-y-6 animate-in fade-in">
-            <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-800 pb-2 dark:text-gray-100">Personal Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Full Name</label><input type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm transition-all" /></div>
-              <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Email</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm transition-all" /></div>
-              <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Phone</label><input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm transition-all" /></div>
-              <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Address Location</label><input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm transition-all" /></div>
+      <div className="grid gap-8 xl:grid-cols-[0.85fr_1.15fr]">
+        <section className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          {currentStep === 0 && (
+            <div className="space-y-5">
+              <PhotoInput data={formData} onChange={handlePhoto} t={t} />
+              <FormGrid fields={[
+                ['fullName', 'cv.full_name'],
+                ['title', 'cv.professional_title'],
+                ['email', 'cv.email'],
+                ['phone', 'cv.phone'],
+                ['address', 'cv.address'],
+                ['linkedin', 'cv.linkedin'],
+              ]} data={formData} updateField={updateField} t={t} />
+              <TextArea label={t('cv.summary')} value={formData.summary} onChange={(value) => updateField('summary', value)} />
             </div>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Professional Summary</label><textarea rows="4" value={formData.summary} onChange={e => setFormData({...formData, summary: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm transition-all"></textarea></div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-5">
+              <FormGrid fields={[
+                ['degree', 'cv.degree'],
+                ['school', 'cv.school'],
+                ['year', 'cv.year'],
+                ['certifications', 'cv.certifications'],
+              ]} data={formData} updateField={updateField} t={t} />
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-5">
+              <FormGrid fields={[
+                ['jobTitle', 'cv.job_title'],
+                ['company', 'cv.company'],
+                ['duration', 'cv.duration'],
+              ]} data={formData} updateField={updateField} t={t} />
+              <TextArea label={t('cv.description')} value={formData.jobDesc} onChange={(value) => updateField('jobDesc', value)} helper={t('cv.description_helper')} />
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-5">
+              <TextArea label={t('cv.skills_label')} value={formData.skills} onChange={(value) => updateField('skills', value)} helper={t('cv.comma_helper')} />
+              <TextArea label={t('cv.languages')} value={formData.languages} onChange={(value) => updateField('languages', value)} helper={t('cv.comma_helper')} />
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="space-y-5">
+              <h2 className="text-2xl font-black text-gray-950 dark:text-white">{t('cv.ready')}</h2>
+              <p className="font-semibold text-gray-500 dark:text-gray-400">{t('cv.ready_desc')}</p>
+              {feedback && <div className="rounded-3xl bg-primary-50 p-5 text-sm font-bold text-primary-700 dark:bg-primary-950/20 dark:text-primary-300">{t('cv.overall_score')}: {feedback.overall_score}%</div>}
+              <div className="flex flex-wrap gap-3">
+                <button onClick={getAIFeedback} disabled={analyzing} className="inline-flex items-center gap-2 rounded-2xl bg-indigo-50 px-5 py-3 text-sm font-black text-indigo-700 disabled:opacity-60 dark:bg-indigo-900/30 dark:text-indigo-300">
+                  <Sparkles className="h-4 w-4" />
+                  {analyzing ? t('common.loading') : t('cv.ai_feedback')}
+                </button>
+                <button onClick={handleDownload} className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-5 py-3 text-sm font-black text-white">
+                  <Download className="h-4 w-4" />
+                  {t('cv.save_pdf')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-8 flex justify-between border-t border-gray-100 pt-5 dark:border-gray-800">
+            <button onClick={() => setCurrentStep((step) => Math.max(0, step - 1))} disabled={currentStep === 0} className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-black text-gray-600 disabled:opacity-40 dark:border-gray-800 dark:text-gray-300">{t('common.back')}</button>
+            <button onClick={() => setCurrentStep((step) => Math.min(steps.length - 1, step + 1))} disabled={currentStep === steps.length - 1} className="rounded-2xl bg-gray-950 px-5 py-3 text-sm font-black text-white disabled:opacity-40 dark:bg-white dark:text-gray-950">{currentStep === steps.length - 2 ? t('cv.generate') : t('common.next')}</button>
           </div>
-        )}
+        </section>
 
-        {currentStep === 1 && (
-          <div className="space-y-6 animate-in fade-in">
-            <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-800 pb-2 dark:text-gray-100">Education Background</h2>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Degree / Certification</label><input type="text" value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} placeholder="e.g. BSc Computer Science" className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm" /></div>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">School / University</label><input type="text" value={formData.school} onChange={e => setFormData({...formData, school: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm" /></div>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Graduation Year</label><input type="text" value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm" /></div>
-          </div>
-        )}
-
-        {currentStep === 2 && (
-          <div className="space-y-6 animate-in fade-in">
-            <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-800 pb-2 dark:text-gray-100">Work Experience</h2>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Job Title</label><input type="text" value={formData.jobTitle} onChange={e => setFormData({...formData, jobTitle: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm" /></div>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Company</label><input type="text" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm" /></div>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Duration</label><input type="text" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} placeholder="Jan 2022 - Present" className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm" /></div>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Description / Responsibilities</label><textarea rows="4" value={formData.jobDesc} onChange={e => setFormData({...formData, jobDesc: e.target.value})} className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm"></textarea></div>
-          </div>
-        )}
-
-        {currentStep === 3 && (
-          <div className="space-y-6 animate-in fade-in">
-            <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-800 pb-2 dark:text-gray-100">Core Skills</h2>
-            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Skills (comma separated)</label><textarea rows="4" value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} placeholder="e.g. JavaScript, React, Leadership, Project Management" className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-gray-100 shadow-sm"></textarea></div>
-          </div>
-        )}
-
-        {currentStep === 4 && (
-          <div className="animate-in fade-in space-y-8">
-             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                   <h2 className="text-2xl font-bold flex items-center gap-2 dark:text-gray-100"><CheckCircle className="text-green-500" /> Ready to Download</h2>
-                   <p className="text-gray-500 dark:text-gray-400">Review your generated CV layout and get AI feedback below.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button 
-                        onClick={getAIFeedback} 
-                        disabled={analyzing}
-                        className="px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-xl font-bold flex items-center gap-2 transition-all hover:bg-indigo-100 disabled:opacity-50"
-                    >
-                        {analyzing ? <Loader2 className="w-5 h-5 animate-spin"/> : <Sparkles className="w-5 h-5"/>}
-                        AI Feedback
-                    </button>
-                    <button onClick={handleDownload} className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-lg flex items-center gap-2 font-bold transition-all active:scale-95">
-                       <Download className="w-5 h-5"/> Save as PDF
-                    </button>
-                </div>
-             </div>
-
-             {feedback && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-4">
-                    <div className="bg-primary-50 dark:bg-primary-900/10 p-6 rounded-3xl border border-primary-100 dark:border-primary-800 flex flex-col items-center justify-center text-center">
-                        <div className="relative w-24 h-24 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90">
-                                <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-100 dark:text-gray-800" />
-                                <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * feedback.overall_score) / 100} className="text-primary-600" />
-                            </svg>
-                            <span className="absolute text-2xl font-black text-gray-900 dark:text-gray-100">{feedback.overall_score}%</span>
-                        </div>
-                        <p className="mt-4 font-bold text-primary-700 dark:text-primary-400">Overall CV Score</p>
-                    </div>
-                    
-                    <div className="lg:col-span-2 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                <h4 className="text-sm font-black text-green-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4" /> Strengths
-                                </h4>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                    {feedback.strengths?.map((s, i) => <li key={i}>- {s}</li>)}
-                                </ul>
-                            </div>
-                            <div className="p-5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                <h4 className="text-sm font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4" /> Improvements
-                                </h4>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                    {feedback.improvements?.map((s, i) => <li key={i}>- {s}</li>)}
-                                </ul>
-                            </div>
-                        </div>
-                        <div className="p-5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800">
-                            <h4 className="text-sm font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-2">ATS Strategy</h4>
-                            <p className="text-sm text-indigo-600 dark:text-indigo-300 leading-relaxed italic">"{feedback.ats_suggestions}"</p>
-                        </div>
-                    </div>
-                </div>
-             )}
-
-             {/* CV Template Section */}
-             <div className="bg-gray-50 dark:bg-gray-950 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 overflow-x-auto shadow-inner">
-               <div ref={cvRef} className="bg-white p-10 w-[800px] mx-auto text-gray-800 font-sans shadow-2xl border border-gray-200" style={{minHeight: "1056px"}}>
-                  <h1 className="text-4xl font-bold text-gray-900 border-b-2 border-primary-600 pb-2 mb-4 uppercase tracking-tight">{formData.fullName || 'YOUR NAME'}</h1>
-                  <div className="flex gap-4 text-sm text-gray-600 mb-8 font-medium">
-                     <span>{formData.email || 'email@example.com'}</span> |
-                     <span>{formData.phone || '+1 234 567 890'}</span> |
-                     <span>{formData.address || 'City, Country'}</span>
+        <section className="space-y-5">
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <h2 className="mb-4 text-sm font-black uppercase tracking-widest text-gray-400">{t('cv.template_switcher')}</h2>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {templates.map((template) => (
+                <button key={template} onClick={() => setSelectedTemplate(template)} className={`rounded-2xl border p-3 text-left transition ${selectedTemplate === template ? 'border-primary-500 ring-2 ring-primary-500/20' : 'border-gray-100 dark:border-gray-800'}`}>
+                  <div className="mb-3 h-20 rounded-xl bg-gray-100 p-2 dark:bg-gray-950">
+                    <div className="h-full rounded-lg" style={{ background: template === 'minimal' ? `linear-gradient(90deg,#fff,#fff)` : `linear-gradient(90deg, ${color} 32%, #fff 32%)` }} />
                   </div>
-
-                  {formData.summary && (
-                     <div className="mb-8">
-                       <h2 className="text-xl font-bold text-gray-900 mb-2 uppercase tracking-wide">Professional Summary</h2>
-                       <p className="text-gray-700 leading-relaxed">{formData.summary}</p>
-                     </div>
-                  )}
-
-                  <div className="mb-8">
-                     <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b border-gray-200 pb-1">Experience</h2>
-                     <div>
-                        <div className="flex justify-between font-bold text-lg text-gray-900">
-                           <span>{formData.jobTitle || 'Job Title'}</span>
-                           <span className="text-primary-600">{formData.duration || 'Duration'}</span>
-                        </div>
-                        <div className="text-gray-600 font-medium text-md mb-2">{formData.company || 'Company Name'}</div>
-                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{formData.jobDesc || 'Job responsibilities and achievements go here.'}</p>
-                     </div>
-                  </div>
-
-                  <div className="mb-8">
-                     <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b border-gray-200 pb-1">Education</h2>
-                     <div className="flex justify-between font-bold text-lg text-gray-900">
-                           <span>{formData.degree || 'Degree Name'}</span>
-                           <span className="text-primary-600">{formData.year || 'Graduation Year'}</span>
-                     </div>
-                     <div className="text-gray-600 font-medium">{formData.school || 'University Name'}</div>
-                  </div>
-
-                  <div className="mb-8">
-                     <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b border-gray-200 pb-1">Skills</h2>
-                     <div className="flex flex-wrap gap-2 mt-2">
-                        {(formData.skills ? formData.skills.split(',') : ['Skill 1', 'Skill 2', 'Skill 3']).map((skill, i) => (
-                           <span key={i} className="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium border border-gray-200">{skill.trim()}</span>
-                        ))}
-                     </div>
-                  </div>
-               </div>
-             </div>
+                  <p className="font-black text-gray-900 dark:text-white">{t(`cv.templates.${template}`)}</p>
+                </button>
+              ))}
+            </div>
+            <h2 className="mb-3 mt-6 text-sm font-black uppercase tracking-widest text-gray-400">{t('cv.theme_picker')}</h2>
+            <div className="flex flex-wrap gap-2">
+              {themes.map((theme) => (
+                <button key={theme[0]} onClick={() => setSelectedTheme(theme)} aria-label={t(`theme.${theme[0]}`)} className={`h-9 w-9 rounded-full border-2 ${selectedTheme[0] === theme[0] ? 'border-gray-950 dark:border-white' : 'border-transparent'}`} style={{ backgroundColor: theme[1] }} />
+              ))}
+            </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex justify-between mt-6">
-        <button 
-          onClick={() => setCurrentStep(s => Math.max(0, s - 1))}
-          disabled={currentStep === 0}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl disabled:opacity-50 hover:bg-gray-50 transition-all font-medium active:scale-95"
-        >
-          Back
-        </button>
-        <button 
-          onClick={() => setCurrentStep(s => Math.min(STEPS.length - 1, s + 1))}
-          disabled={currentStep === STEPS.length - 1}
-          className="px-6 py-3 bg-primary-600 text-white rounded-xl disabled:opacity-50 hover:bg-primary-700 transition-all font-medium active:scale-95 shadow-md flex items-center justify-center min-w-[120px]"
-        >
-          {currentStep === STEPS.length - 2 ? 'Generate CV' : 'Next Step'}
-        </button>
+          <div className="overflow-auto rounded-[2rem] border border-gray-100 bg-gray-100 p-4 shadow-inner dark:border-gray-800 dark:bg-gray-950">
+            {canPreview ? (
+              <div ref={cvRef} className="mx-auto w-[800px] overflow-hidden bg-white shadow-2xl">
+                <CvContent data={formData} color={color} t={t} variant={selectedTemplate} />
+              </div>
+            ) : (
+              <div className="flex min-h-[420px] items-center justify-center rounded-3xl bg-white text-center text-sm font-black text-gray-400 dark:bg-gray-900">
+                {t('cv.preview_empty')}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
+  );
+}
+
+function PhotoInput({ data, onChange, t }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-4 rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">
+      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white dark:bg-gray-900">
+        {data.photo ? <img src={data.photo} alt="" className="h-full w-full object-cover" /> : <Upload className="h-6 w-6 text-gray-400" />}
+      </div>
+      <div>
+        <p className="font-black text-gray-900 dark:text-white">{t('cv.photo_upload')}</p>
+        <p className="text-sm font-semibold text-gray-500">{t('cv.photo_hint')}</p>
+      </div>
+      <input type="file" accept="image/*" className="hidden" onChange={onChange} />
+    </label>
+  );
+}
+
+function FormGrid({ fields, data, updateField, t }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {fields.map(([key, labelKey]) => (
+        <label key={key}>
+          <span className="mb-2 block text-sm font-black text-gray-700 dark:text-gray-300">{t(labelKey)}</span>
+          <input value={data[key]} onChange={(event) => updateField(key, event.target.value)} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 font-bold outline-none focus:border-primary-400 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100" />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function TextArea({ label, value, onChange, helper }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-black text-gray-700 dark:text-gray-300">{label}</span>
+      <textarea rows="4" value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 font-bold outline-none focus:border-primary-400 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100" />
+      {helper && <span className="mt-2 block text-xs font-bold text-gray-400">{helper}</span>}
+    </label>
   );
 }

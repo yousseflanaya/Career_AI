@@ -169,7 +169,7 @@ export default function CareerQuizPage() {
                     className={`p-5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 text-left font-bold transition-all group relative overflow-hidden ${btn.color} ${loading ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                 >
                     <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full border-2 border-current flex items-center justify-center text-sm">
+                        <div className="w-10 h-10 rounded-2xl border-2 border-current flex items-center justify-center text-sm font-black">
                             {btn.val}
                         </div>
                         <span className="dark:text-gray-100 group-hover:text-inherit">{btn.label}</span>

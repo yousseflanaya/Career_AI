@@ -6,6 +6,12 @@ import en from './locales/en.json';
 import fr from './locales/fr.json';
 import ar from './locales/ar.json';
 
+const applyDocumentLanguage = (lng) => {
+  const normalized = lng?.split('-')?.[0] || 'en';
+  document.documentElement.lang = normalized;
+  document.documentElement.dir = normalized === 'ar' ? 'rtl' : 'ltr';
+};
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -24,5 +30,8 @@ i18n
       caches: ['localStorage'],
     },
   });
+
+i18n.on('languageChanged', applyDocumentLanguage);
+applyDocumentLanguage(i18n.language);
 
 export default i18n;

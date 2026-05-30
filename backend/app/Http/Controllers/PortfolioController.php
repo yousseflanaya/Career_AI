@@ -40,9 +40,7 @@ class PortfolioController extends Controller
 
     public function showPublic(string $username)
     {
-        $portfolio = Portfolio::where('custom_url', $username)
-            ->where('is_public', true)
-            ->first();
+        $portfolio = Portfolio::where('custom_url', $username)->first();
 
         if (!$portfolio) {
             return response()->json(['message' => 'Portfolio is private or not found.'], 404);
@@ -67,7 +65,7 @@ class PortfolioController extends Controller
     {
         return Portfolio::firstOrCreate(
             ['user_id' => $user->id],
-            ['custom_url' => $this->defaultSlug($user), 'is_public' => false]
+            ['custom_url' => $this->defaultSlug($user), 'is_public' => true]
         );
     }
 

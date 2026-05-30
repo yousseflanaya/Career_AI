@@ -1,14 +1,23 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../lib/axios';
+import { useTranslation } from 'react-i18next';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('auth_token')) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -20,7 +29,7 @@ export default function RegisterPage() {
       localStorage.setItem('auth_token', response.data.token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || t('auth.registration_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -30,8 +39,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create Account</h1>
-          <p className="text-gray-500 mt-2">Join CareerAI and start your journey</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('auth.create_account')}</h1>
+          <p className="text-gray-500 mt-2">{t('auth.register_subtitle')}</p>
         </div>
         
         {error && (
@@ -42,12 +51,12 @@ export default function RegisterPage() {
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('cv.full_name')}</label>
             <input 
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Alex Johnson" 
+              placeholder={t('auth.name_placeholder')} 
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" 
               required
             />
@@ -64,7 +73,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.password')}</label>
             <input 
               type="password" 
               value={password}
@@ -81,12 +90,12 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-xl shadow-md transition-all active:scale-95 mt-4"
           >
-            {isLoading ? 'Creating account...' : 'Sign Up'}
+            {isLoading ? t('auth.creating_account') : t('auth.sign_up')}
           </button>
         </form>
 
         <p className="text-center mt-8 text-sm text-gray-500">
-          Already have an account? <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">Sign in</Link>
+          {t('auth.have_account')} <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">{t('auth.sign_in')}</Link>
         </p>
       </div>
     </div>

@@ -1,13 +1,22 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../lib/axios';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('auth_token')) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,7 +28,7 @@ export default function LoginPage() {
       localStorage.setItem('auth_token', response.data.token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.message || t('auth.login_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -29,8 +38,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h1>
-          <p className="text-gray-500 mt-2">Sign in to your CareerAI account</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('auth.welcome_back')}</h1>
+          <p className="text-gray-500 mt-2">{t('auth.sign_in_subtitle')}</p>
         </div>
         
         {error && (
@@ -46,13 +55,13 @@ export default function LoginPage() {
               type="email" 
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com" 
+              placeholder={t('auth.email_placeholder')} 
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" 
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.password')}</label>
             <input 
               type="password" 
               value={password}
@@ -66,9 +75,9 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2">
               <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500" />
-              <span className="text-sm text-gray-500">Remember me</span>
+              <span className="text-sm text-gray-500">{t('auth.remember_me')}</span>
             </label>
-            <Link to="#" className="text-sm font-medium text-primary-600 hover:text-primary-500">Forgot password?</Link>
+            <Link to="#" className="text-sm font-medium text-primary-600 hover:text-primary-500">{t('auth.forgot_password')}</Link>
           </div>
 
           <button 
@@ -76,12 +85,12 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-xl shadow-md transition-all active:scale-95"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? t('auth.signing_in') : t('auth.sign_in')}
           </button>
         </form>
 
         <p className="text-center mt-8 text-sm text-gray-500">
-          Don't have an account? <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">Sign up</Link>
+          {t('auth.no_account')} <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">{t('auth.sign_up')}</Link>
         </p>
       </div>
     </div>
